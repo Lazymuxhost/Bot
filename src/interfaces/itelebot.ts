@@ -17,7 +17,6 @@ export interface ITeleBotFlags {
 }
 
 export interface IMethodOptionalProperties {
-    disable_web_page_preview?: boolean;
     disable_notification?: boolean;
     reply_to_message_id?: number;
     reply_markup?: any;

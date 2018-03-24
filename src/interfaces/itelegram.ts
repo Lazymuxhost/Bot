@@ -3,8 +3,11 @@ export type ITelegramBotId = string;
 
 export type ITelegramUpdateId = number;
 export type ITelegramMessageId = number;
-export type ITelegramChatId = string | number;
+export type ITelegramChatId = number | string;
 export type ITelegramUserId = ITelegramChatId;
+
+export type ITelegramParseMode = 'Markdown' | 'HTML';
+export type ITelegramAction = 'typing' | 'upload_photo' | 'record_video' | 'upload_video' | 'record_audio' | 'upload_audio' | 'upload_document' | 'find_location' | 'record_video_note' | 'upload_video_note';
 
 export interface ITelegramResponse<T> {
     ok: boolean,
@@ -92,4 +95,15 @@ export interface ITelegramMessage {
     pinned_message?: any;
     invoice?: any;
     successful_payment?: any;
+}
+
+export interface ITelegramFile {
+    file_id: string;
+    file_size?: number;
+    file_path?: string;
+}
+
+export interface ITelegramUserProfilePhotos {
+    total_count: number;
+    photos: ITelegramPhotoSize[];
 }

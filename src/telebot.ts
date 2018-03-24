@@ -1,8 +1,9 @@
 import axios, {AxiosPromise} from 'axios';
 import {convertToArray} from "./utils";
 import {
-    ITelegramBotId, ITelegramBotToken, ITelegramChatId, ITelegramMessage, ITelegramResponse,
-    ITelegramUpdate, ITelegramUser, ITelegramUserId
+    ITelegramAction, ITelegramBotId, ITelegramBotToken, ITelegramChatId, ITelegramFile, ITelegramMessage,
+    ITelegramMessageId, ITelegramParseMode, ITelegramResponse, ITelegramUpdate, ITelegramUser, ITelegramUserId,
+    ITelegramUserProfilePhotos
 } from "./interfaces/itelegram";
 import {
     IEventProcessor, ITeleBotEvents, IMethodOptionalProperties, ITeleBotEvent, ITeleBotFlags, ITeleBotOptions
@@ -126,6 +127,10 @@ const updateProcessors = {
     }
 };
 
+class TeleBotError extends Error {
+
+}
+
 export class TeleBot extends TeleBotEvents {
 
     private botId:ITelegramBotId;
@@ -162,6 +167,11 @@ export class TeleBot extends TeleBotEvents {
         const {token, polling} = options;
 
         this.botToken = token;
+
+        if (!this.botToken || !this.botToken.includes(':')) {
+            throw new TeleBotError('Invalid bot token.');
+        }
+
         this.botId = this.botToken.split(':')[0];
 
         this.telegramAPI = `https://api.telegram.org/bot${ this.botToken }`;
@@ -288,9 +298,10 @@ export class TeleBot extends TeleBotEvents {
         });
     }
 
-    private telegramMethod<T>({ methodName, data = {}, optionalProperties = {} }: { methodName:string, data?:any, optionalProperties?:IMethodOptionalProperties }) {
-        return this.telegramRequest<T>(methodName, data).then((response) => {
-            return response.data.result;
+    private telegramMethod<T>({ methodName, postData = {}, optionalProperties = {} }: { methodName:string, postData?:any, optionalProperties?:any }) {
+        const finalPostData = Object.assign(postData, optionalProperties);
+        return this.telegramRequest<T>(methodName, finalPostData).then((response) => {
+            return response.data.result; // TODO: bullet proof check
         });
     }
 
@@ -316,11 +327,11 @@ export class TeleBot extends TeleBotEvents {
     public sendMessage(
         chat_id: ITelegramChatId,
         text: string,
-        optionalProperties?: IMethodOptionalProperties
+        optionalProperties?: {parse_mode: ITelegramParseMode, disable_web_page_preview?: boolean} & IMethodOptionalProperties
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<ITelegramMessage>({
             methodName: 'sendMessage',
-            data: {chat_id, text},
+            postData: {chat_id, text},
             optionalProperties
         });
     }
@@ -328,13 +339,84 @@ export class TeleBot extends TeleBotEvents {
     public forwardMessage(
         chat_id: ITelegramUserId | ITelegramChatId,
         from_chat_id: ITelegramChatId,
-        message_id: number,
-        optionalProperties?: IMethodOptionalProperties
+        message_id: ITelegramMessageId,
+        optionalProperties?: {disable_notification?: boolean}
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<ITelegramMessage>({
             methodName: 'forwardMessage',
-            data: {chat_id, from_chat_id, message_id},
+            postData: {chat_id, from_chat_id, message_id},
             optionalProperties
+        });
+    }
+
+    public sendLocation(
+        chat_id: ITelegramChatId,
+        latitude: number,
+        longitude: number,
+        optionalProperties?: {live_period?:number} & IMethodOptionalProperties
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendLocation',
+            postData: {chat_id, latitude, longitude},
+            optionalProperties
+        });
+    }
+
+    public sendVenue(
+        chat_id: ITelegramChatId,
+        latitude: number,
+        longitude: number,
+        title: string,
+        address: string,
+        optionalProperties?: {foursquare_id?:string} & IMethodOptionalProperties
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendVenue',
+            postData: {chat_id, latitude, longitude, title, address},
+            optionalProperties
+        });
+    }
+
+    public sendContact(
+        chat_id: ITelegramChatId,
+        phone_number: number,
+        first_name: string,
+        optionalProperties?: {last_name?:string} & IMethodOptionalProperties
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendContact',
+            postData: {chat_id, phone_number, first_name},
+            optionalProperties
+        });
+    }
+
+    public sendAction(
+        chat_id: ITelegramChatId,
+        action: ITelegramAction,
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<any>({
+            methodName: 'sendAction',
+            postData: {chat_id, action}
+        });
+    }
+
+    public getUserProfilePhotos(
+        user_id: ITelegramUserId,
+        optionalProperties?: {offset?:number, limit?:number}
+    ):Promise<ITelegramUserProfilePhotos> {
+        return this.telegramMethod<ITelegramUserProfilePhotos>({
+            methodName: 'getUserProfilePhotos',
+            postData: {user_id},
+            optionalProperties
+        });
+    }
+
+    public getFile(
+        file_id: string,
+    ):Promise<ITelegramFile> {
+        return this.telegramMethod<ITelegramFile>({
+            methodName: 'getFile',
+            postData: {file_id},
         });
     }
 
