@@ -2,10 +2,18 @@
   "name": "telebot",
   "version": "2.0.0",
   "description": "The easy way to write Telegram bots.",
+  "main": "dist/telebot.js",
   "dependencies": {
     "axios": "^0.18.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "typescript": "^2.7.2",
+    "@types/node": "^9.6.0",
+    "ava": "^1.0.0-beta.3"
+  },
+  "scripts": {
+    "test": "tsc && ava"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/mullwar/telebot.git"
