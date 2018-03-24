@@ -6,8 +6,9 @@ export type ITelegramMessageId = number;
 export type ITelegramChatId = number | string;
 export type ITelegramUserId = ITelegramChatId;
 
-export type ITelegramParseMode = 'Markdown' | 'HTML';
+export type ITelegramInputFile = string;
 export type ITelegramAction = 'typing' | 'upload_photo' | 'record_video' | 'upload_video' | 'record_audio' | 'upload_audio' | 'upload_document' | 'find_location' | 'record_video_note' | 'upload_video_note';
+export type ITelegramInputMedia = ITelegramInputMediaPhoto | ITelegramInputMediaVideo;
 
 export interface ITelegramResponse<T> {
     ok: boolean,
@@ -106,4 +107,31 @@ export interface ITelegramFile {
 export interface ITelegramUserProfilePhotos {
     total_count: number;
     photos: ITelegramPhotoSize[];
+}
+
+export interface ITelegramMessageOptional {
+    disable_notification?: boolean;
+    reply_to_message_id?: number;
+    reply_markup?: any;
+}
+
+export interface ITelegramParseMode {
+    parse_mode?: 'Markdown' | 'HTML';
+}
+
+interface IInputMedia extends ITelegramParseMode {
+    type: 'photo' | 'video';
+    media: string;
+    caption?: string;
+}
+
+export interface ITelegramInputMediaPhoto extends IInputMedia {
+
+}
+
+export interface ITelegramInputMediaVideo extends IInputMedia {
+    width?: number;
+    height?: number;
+    duration?: number;
+    supports_streaming?: boolean;
 }

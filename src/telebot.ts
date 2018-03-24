@@ -1,12 +1,12 @@
 import axios, {AxiosPromise} from 'axios';
 import {convertToArray} from "./utils";
 import {
-    ITelegramAction, ITelegramBotId, ITelegramBotToken, ITelegramChatId, ITelegramFile, ITelegramMessage,
-    ITelegramMessageId, ITelegramParseMode, ITelegramResponse, ITelegramUpdate, ITelegramUser, ITelegramUserId,
-    ITelegramUserProfilePhotos
+    ITelegramAction, ITelegramBotId, ITelegramBotToken, ITelegramChatId, ITelegramFile, ITelegramInputFile,
+    ITelegramInputMedia, ITelegramMessage, ITelegramMessageOptional, ITelegramMessageId, ITelegramParseMode,
+    ITelegramResponse, ITelegramUpdate, ITelegramUser, ITelegramUserId, ITelegramUserProfilePhotos
 } from "./interfaces/itelegram";
 import {
-    IEventProcessor, ITeleBotEvents, IMethodOptionalProperties, ITeleBotEvent, ITeleBotFlags, ITeleBotOptions
+    IEventProcessor, ITeleBotEvents, ITeleBotEvent, ITeleBotFlags, ITeleBotOptions
 } from "./interfaces/itelebot";
 
 const messageTypes = [
@@ -298,8 +298,9 @@ export class TeleBot extends TeleBotEvents {
         });
     }
 
-    private telegramMethod<T>({ methodName, postData = {}, optionalProperties = {} }: { methodName:string, postData?:any, optionalProperties?:any }) {
-        const finalPostData = Object.assign(postData, optionalProperties);
+    private telegramMethod<T>({ methodName, requiredData = {}, optionalData = {} }: { methodName:string, requiredData?:any, optionalData?:any }) {
+        const finalPostData = Object.assign({}, requiredData, optionalData);
+        this.dev.log(methodName + ' -> ' + JSON.stringify(finalPostData));
         return this.telegramRequest<T>(methodName, finalPostData).then((response) => {
             return response.data.result; // TODO: bullet proof check
         });
@@ -327,25 +328,109 @@ export class TeleBot extends TeleBotEvents {
     public sendMessage(
         chat_id: ITelegramChatId,
         text: string,
-        optionalProperties?: {parse_mode: ITelegramParseMode, disable_web_page_preview?: boolean} & IMethodOptionalProperties
+        optionalProperties?: {disable_web_page_preview?: boolean} & ITelegramParseMode & ITelegramMessageOptional
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<ITelegramMessage>({
             methodName: 'sendMessage',
-            postData: {chat_id, text},
-            optionalProperties
+            requiredData: {chat_id, text},
+            optionalData: optionalProperties
         });
     }
 
     public forwardMessage(
-        chat_id: ITelegramUserId | ITelegramChatId,
+        chat_id: ITelegramChatId,
         from_chat_id: ITelegramChatId,
         message_id: ITelegramMessageId,
         optionalProperties?: {disable_notification?: boolean}
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<ITelegramMessage>({
             methodName: 'forwardMessage',
-            postData: {chat_id, from_chat_id, message_id},
-            optionalProperties
+            requiredData: {chat_id, from_chat_id, message_id},
+            optionalData: optionalProperties
+        });
+    }
+
+    public sendPhoto(
+        chat_id: ITelegramChatId,
+        photo: ITelegramInputFile,
+        optionalProperties?: {caption?: string} & ITelegramParseMode & ITelegramMessageOptional
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendPhoto',
+            requiredData: {chat_id, photo},
+            optionalData: optionalProperties
+        });
+    }
+
+    public sendAudio(
+        chat_id: ITelegramChatId,
+        audio: ITelegramInputFile,
+        optionalProperties?: {caption?: string, duration?: number, performer?: string, title?: string} & ITelegramParseMode & ITelegramMessageOptional
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendAudio',
+            requiredData: {chat_id, audio},
+            optionalData: optionalProperties
+        });
+    }
+
+    public sendVideo(
+        chat_id: ITelegramChatId,
+        video: ITelegramInputFile,
+        optionalProperties?: {caption?: string, duration?: number, width?: number, height?: number, supports_streaming?: boolean} & ITelegramParseMode & ITelegramMessageOptional
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendVideo',
+            requiredData: {chat_id, video},
+            optionalData: optionalProperties
+        });
+    }
+
+    public sendDocument(
+        chat_id: ITelegramChatId,
+        document: ITelegramInputFile,
+        optionalProperties?: {caption?: string} & ITelegramParseMode & ITelegramMessageOptional
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendDocument',
+            requiredData: {chat_id, document},
+            optionalData: optionalProperties
+        });
+    }
+
+    public sendVoice(
+        chat_id: ITelegramChatId,
+        voice: ITelegramInputFile,
+        optionalProperties?: {caption?: string, duration?: number} & ITelegramParseMode & ITelegramMessageOptional
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendVoice',
+            requiredData: {chat_id, voice},
+            optionalData: optionalProperties
+        });
+    }
+
+    public sendVideoNote(
+        chat_id: ITelegramChatId,
+        video_note: ITelegramInputFile,
+        optionalProperties?: {duration?: number, length?: number} & ITelegramMessageOptional
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendVideoNote',
+            requiredData: {chat_id, video_note},
+            optionalData: optionalProperties
+        });
+    }
+
+    public sendMediaGroup(
+        chat_id: ITelegramChatId,
+        media: ITelegramInputMedia[],
+        optionalProperties?: {reply_to_message_id?: number, disable_notification?: boolean}
+    ):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'sendMediaGroup',
+            requiredData: {chat_id, media},
+            optionalData: optionalProperties
         });
     }
 
@@ -353,12 +438,28 @@ export class TeleBot extends TeleBotEvents {
         chat_id: ITelegramChatId,
         latitude: number,
         longitude: number,
-        optionalProperties?: {live_period?:number} & IMethodOptionalProperties
+        optionalProperties?: {live_period?:number} & ITelegramMessageOptional
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<ITelegramMessage>({
             methodName: 'sendLocation',
-            postData: {chat_id, latitude, longitude},
-            optionalProperties
+            requiredData: {chat_id, latitude, longitude},
+            optionalData: optionalProperties
+        });
+    }
+
+    public editMessageLiveLocation({chat_id, message_id, inline_message_id, latitude, longitude, reply_markup}:{chat_id?:ITelegramChatId, message_id?:ITelegramMessageId, inline_message_id?:string, latitude:number, longitude: number, reply_markup:any}):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'editMessageLiveLocation',
+            requiredData: {latitude, longitude},
+            optionalData: {chat_id, message_id, inline_message_id, reply_markup}
+        });
+    }
+
+    public stopMessageLiveLocation({chat_id, message_id, inline_message_id, reply_markup}:{chat_id?:ITelegramChatId, message_id?:ITelegramMessageId, inline_message_id?:string, reply_markup:any}):Promise<ITelegramMessage> {
+        return this.telegramMethod<ITelegramMessage>({
+            methodName: 'editMessageLiveLocation',
+            requiredData: {},
+            optionalData: {chat_id, message_id, inline_message_id, reply_markup}
         });
     }
 
@@ -368,12 +469,12 @@ export class TeleBot extends TeleBotEvents {
         longitude: number,
         title: string,
         address: string,
-        optionalProperties?: {foursquare_id?:string} & IMethodOptionalProperties
+        optionalProperties?: {foursquare_id?:string} & ITelegramMessageOptional
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<ITelegramMessage>({
             methodName: 'sendVenue',
-            postData: {chat_id, latitude, longitude, title, address},
-            optionalProperties
+            requiredData: {chat_id, latitude, longitude, title, address},
+            optionalData: optionalProperties
         });
     }
 
@@ -381,12 +482,12 @@ export class TeleBot extends TeleBotEvents {
         chat_id: ITelegramChatId,
         phone_number: number,
         first_name: string,
-        optionalProperties?: {last_name?:string} & IMethodOptionalProperties
+        optionalProperties?: {last_name?:string} & ITelegramMessageOptional
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<ITelegramMessage>({
             methodName: 'sendContact',
-            postData: {chat_id, phone_number, first_name},
-            optionalProperties
+            requiredData: {chat_id, phone_number, first_name},
+            optionalData: optionalProperties
         });
     }
 
@@ -396,7 +497,7 @@ export class TeleBot extends TeleBotEvents {
     ):Promise<ITelegramMessage> {
         return this.telegramMethod<any>({
             methodName: 'sendAction',
-            postData: {chat_id, action}
+            requiredData: {chat_id, action}
         });
     }
 
@@ -406,8 +507,8 @@ export class TeleBot extends TeleBotEvents {
     ):Promise<ITelegramUserProfilePhotos> {
         return this.telegramMethod<ITelegramUserProfilePhotos>({
             methodName: 'getUserProfilePhotos',
-            postData: {user_id},
-            optionalProperties
+            requiredData: {user_id},
+            optionalData: optionalProperties
         });
     }
 
@@ -416,7 +517,7 @@ export class TeleBot extends TeleBotEvents {
     ):Promise<ITelegramFile> {
         return this.telegramMethod<ITelegramFile>({
             methodName: 'getFile',
-            postData: {file_id},
+            requiredData: {file_id}
         });
     }
 

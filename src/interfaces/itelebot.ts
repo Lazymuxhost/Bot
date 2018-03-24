@@ -16,12 +16,6 @@ export interface ITeleBotFlags {
     waitEvents: boolean;
 }
 
-export interface IMethodOptionalProperties {
-    disable_notification?: boolean;
-    reply_to_message_id?: number;
-    reply_markup?: any;
-}
-
 export interface ITeleBotEvent {
     processors: Array<Function>;
 }
