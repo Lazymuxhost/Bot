@@ -136,6 +136,7 @@ bot.on('edit', (msg) => {
 
 ## ⏰ Events
 
+
 Use ```bot.on(<event>, <function>)``` to handle all possible TeleBot events.
 
 For example, to catch a command, just add a slash:
