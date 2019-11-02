@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "ava": "^0.19.1",
-    "eslint": "^3.19.0"
+    "eslint": "^6.6.0"
   },
   "scripts": {
     "test": "./node_modules/.bin/ava test/index.js",
